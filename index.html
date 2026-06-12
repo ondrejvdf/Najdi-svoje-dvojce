@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Najdi svoje dvojce</title>
+  <style>
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #f2f2f2;
+    color: #171717;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+  }
+
+  main {
+    width: 95%;
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 22px 0;
+  }
+
+  .intro {
+    display: grid;
+    grid-template-columns: 44% 56%;
+    gap: 24px;
+    align-items: end;
+  }
+
+  .intro h1 {
+    grid-column: 1 / 3;
+    margin: 0 0 28px;
+    font-size: 25px;
+    line-height: 1.2;
+  }
+
+  .intro p {
+    grid-column: 2;
+    max-width: 470px;
+    margin: 0 0 -58px 16px;
+    color: #555;
+    line-height: 1.4;
+    position: relative;
+    z-index: 2;
+  }
+
+  .app {
+    min-height: 680px;
+  }
+
+  #twinForm {
+    display: grid;
+    grid-template-columns: 44% 56%;
+    gap: 24px;
+    min-height: 680px;
+  }
+
+  .left-panel,
+  .right-panel {
+    position: relative;
+    min-width: 0;
+    padding: 34px 18px 18px;
+    border: 1px solid #d0d0d0;
+    background: #f7f7f7;
+  }
+
+  .left-panel::before,
+  .right-panel::before {
+    position: absolute;
+    top: -8px;
+    left: 10px;
+    padding: 0 5px;
+    background: #f2f2f2;
+    color: #444;
+    font-size: 12px;
+  }
+
+  .left-panel::before {
+    content: "Údaje uživatele";
+  }
+
+  .right-panel::before {
+    content: "Analýza";
+  }
+
+  .form-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  label {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 10px;
+    align-items: center;
+    color: #333;
+    font-size: 12px;
+  }
+
+  input {
+    width: 100%;
+    height: 25px;
+    padding: 3px 7px;
+    border: 1px solid #c9c9c9;
+    background: white;
+    color: #171717;
+    font: inherit;
+    outline: none;
+  }
+
+  input:focus {
+    border-color: #8d8d8d;
+  }
+
+  .wide {
+    display: block;
+    margin-top: 10px;
+    font-size: 0;
+  }
+
+  .upload {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    min-height: 410px;
+    padding-top: 34px;
+    overflow: hidden;
+    border: 1px solid #bcbcbc;
+    background: #f4f4f4;
+    cursor: pointer;
+  }
+
+  .upload::before {
+    content: "Nahrát fotku obličeje";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 25px;
+    padding: 5px 8px;
+    border-bottom: 1px solid #c9c9c9;
+    background: white;
+    color: #222;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .upload input {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .upload span {
+    padding: 18px;
+    color: #555;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .preview {
+    display: none;
+    width: 100%;
+    height: 100%;
+    min-height: 410px;
+    object-fit: contain;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 22px;
+    padding-top: 58px;
+  }
+
+  button {
+    width: 100%;
+    min-height: 27px;
+    padding: 4px 10px;
+    border: 1px solid #c9c9c9;
+    border-radius: 2px;
+    background: white;
+    color: #222;
+    cursor: pointer;
+    font: inherit;
+    font-size: 12px;
+  }
+
+  button:hover {
+    background: #f5f5f5;
+  }
+
+  button:disabled {
+    background: #ededed;
+    color: #777;
+    cursor: wait;
+  }
+
+  .hint {
+    max-width: 470px;
+    color: #555;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .progress-wrap {
+    display: none;
+    margin-top: 18px;
+  }
+
+  .progress-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 10px;
+    color: #222;
+    font-size: 13px;
+    font-weight: bold;
+  }
+
+  .progress {
+    height: 25px;
+    overflow: hidden;
+    border: 1px solid #c8c8c8;
+    background: #e5e5e5;
+  }
+
+  .bar {
+    width: 0%;
+    height: 100%;
+    background: #a9a9a9;
+    transition: width 0.3s;
+  }
+
+  .progress-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .metric {
+    min-height: 48px;
+    padding: 8px;
+    border: 1px solid #cfcfcf;
+    background: #f9f9f9;
+  }
+
+  .metric span {
+    display: block;
+    color: #666;
+    font-size: 10px;
+    text-transform: uppercase;
+  }
+
+  .metric strong {
+    display: block;
+    margin-top: 5px;
+    color: #222;
+    font-size: 12px;
+  }
+
+  .result {
+    display: none;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #d0d0d0;
+  }
+
+  .result-card {
+    display: block;
+  }
+
+  .match-img {
+    width: 100%;
+    max-height: 315px;
+    border: 1px solid #bcbcbc;
+    background: white;
+    object-fit: contain;
+  }
+
+  .result-copy {
+    margin-top: 12px;
+  }
+
+  .result h2 {
+    margin: 0 0 8px;
+    font-size: 17px;
+  }
+
+  .result p {
+    margin: 0 0 10px;
+    color: #555;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .score {
+    display: inline-block;
+    padding: 5px 8px;
+    border: 1px solid #c6c6c6;
+    background: #eee;
+    color: #222;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .error {
+    display: none;
+    margin-top: 12px;
+    color: #9d2222;
+    font-size: 12px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+  <main>
+    <section class="intro">
+      <h1>Najdi svoje dvojče</h1>
+      <p>Vyplň údaje, nahraj fotku a spusť hledání podobného profilu.</p>
+    </section>
+
+    <section class="app">
+      <form id="twinForm">
+        <div class="left-panel">
+          <div class="form-grid">
+            <label>
+              Jméno
+              <input id="firstName" name="firstName" required>
+            </label>
+
+            <label>
+              Příjmení
+              <input id="lastName" name="lastName" required>
+            </label>
+
+            <label>
+              Věk
+              <input id="age" name="age" type="number" min="1" max="120" required>
+            </label>
+
+            <label>
+              Město
+              <input id="city" name="city" required>
+            </label>
+
+            <label class="wide">
+              Fotka
+              <span class="upload">
+                <img id="preview" class="preview" alt="Nahraná fotka">
+                <span id="uploadText">Klikni sem a nahraj fotku</span>
+                <input id="photo" name="photo" type="file" accept="image/*" required>
+              </span>
+            </label>
+          </div>
+
+          <p id="error" class="error">
+            Vyplň všechna pole a nahraj fotku.
+          </p>
+        </div>
+
+        <div class="right-panel">
+          <div class="actions">
+            <button id="searchBtn" type="submit">Hledat dvojče</button>
+            <span class="hint">
+              Web porovná fotku a zobrazí nejbližší nalezený výsledek.
+            </span>
+          </div>
+
+          <div id="progressWrap" class="progress-wrap">
+            <div class="progress-top">
+              <span id="statusText">Připravuji hledání...</span>
+              <span id="percent">0%</span>
+            </div>
+
+            <div class="progress">
+              <div id="bar" class="bar"></div>
+            </div>
+
+            <div class="progress-metrics">
+              <div class="metric">
+                <span>Fotka</span>
+                <strong id="faceMetric">čeká se</strong>
+              </div>
+
+              <div class="metric">
+                <span>Databáze</span>
+                <strong id="databaseMetric">0 záznamů</strong>
+              </div>
+
+              <div class="metric">
+                <span>Shoda</span>
+                <strong id="confidenceMetric">0,0 %</strong>
+              </div>
+            </div>
+          </div>
+
+          <section id="result" class="result">
+            <div class="result-card">
+              <img id="matchImg" class="match-img" alt="Nalezené dvojče">
+
+              <div class="result-copy">
+                <h2 id="resultTitle">Nalezena shoda</h2>
+                <p id="resultText"></p>
+                <span id="score" class="score"></span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </form>
+    </section>
+  </main>
+</body>
+  <script>
+const formular = document.getElementById("twinForm");
+const inputFotka = document.getElementById("photo");
+const nahledFotky = document.getElementById("preview");
+const textNahrani = document.getElementById("uploadText");
+const chyba = document.getElementById("error");
+
+const boxPrubeh = document.getElementById("progressWrap");
+const lista = document.getElementById("bar");
+const procenta = document.getElementById("percent");
+const stav = document.getElementById("statusText");
+
+const boxVysledek = document.getElementById("result");
+const obrazekVysledku = document.getElementById("matchImg");
+const nadpisVysledku = document.getElementById("resultTitle");
+const textVysledku = document.getElementById("resultText");
+const skoreVysledku = document.getElementById("score");
+
+const tlacitko = document.getElementById("searchBtn");
+const oblicej = document.getElementById("faceMetric");
+const databaze = document.getElementById("databaseMetric");
+const presnost = document.getElementById("confidenceMetric");
+
+const vysledky = [
+  {
+    image: "match-1.png",
+    title: "Nalezena vysoká podobnost",
+    text: "Podobnost byla nalezena hlavně v očích, nose a tvaru obličeje.",
+    score: "Shoda 99,8 %"
+  },
+  {
+    image: "match-2.png",
+    title: "Nalezena podobnost profilu",
+    text: "Systém našel podobné rysy obličeje a úsměvu.",
+    score: "Shoda 97,4 %"
+  },
+  {
+    image: "match-3.png",
+    title: "Nalezena pravděpodobná shoda",
+    text: "Analýza našla podobný tvar obličeje a výraz.",
+    score: "Shoda 96,6 %"
+  }
+];
+
+inputFotka.addEventListener("change", function () {
+  const soubor = inputFotka.files[0];
+
+  if (soubor) {
+    nahledFotky.src = URL.createObjectURL(soubor);
+    nahledFotky.style.display = "block";
+    textNahrani.style.display = "none";
+  }
+});
+
+formular.addEventListener("submit", function (event) {
+  event.preventDefault();
+
+  if (!formular.checkValidity()) {
+    chyba.style.display = "block";
+    formular.reportValidity();
+    return;
+  }
+
+  chyba.style.display = "none";
+  boxVysledek.style.display = "none";
+  boxPrubeh.style.display = "block";
+
+  tlacitko.disabled = true;
+  tlacitko.textContent = "Hledám...";
+
+  lista.style.width = "0%";
+  procenta.textContent = "0%";
+  stav.textContent = "Začínám kontrolu fotky...";
+
+  oblicej.textContent = "čeká se";
+  databaze.textContent = "0 záznamů";
+  presnost.textContent = "0,0 %";
+
+  spustitSkenovani();
+});
+
+function spustitSkenovani() {
+  let prubeh = 0;
+
+  const nacitani = setInterval(function () {
+    prubeh++;
+
+    lista.style.width = prubeh + "%";
+    procenta.textContent = prubeh + "%";
+
+    zmenitStav(prubeh);
+    zmenitUdaje(prubeh);
+
+    if (prubeh >= 100) {
+      clearInterval(nacitani);
+
+      setTimeout(function () {
+        zobrazitVysledek();
+      }, 500);
+    }
+  }, 120);
+}
+
+function zmenitStav(prubeh) {
+  if (prubeh < 20) {
+    stav.textContent = "Načítám fotku...";
+  } else if (prubeh < 45) {
+    stav.textContent = "Hledám obličej na fotce...";
+  } else if (prubeh < 70) {
+    stav.textContent = "Porovnávám podobnost...";
+  } else if (prubeh < 95) {
+    stav.textContent = "Vybírám nejlepší výsledek...";
+  } else {
+    stav.textContent = "Dokončuji analýzu...";
+  }
+}
+
+function zmenitUdaje(prubeh) {
+  const pocetZaznamu = Math.floor(prubeh * 180);
+  const cisloPresnosti = prubeh * 0.99;
+
+  if (prubeh < 25) {
+    oblicej.textContent = "hledání";
+  } else if (prubeh < 90) {
+    oblicej.textContent = "porovnávání";
+  } else {
+    oblicej.textContent = "hotovo";
+  }
+
+  databaze.textContent = pocetZaznamu + " záznamů";
+  presnost.textContent = cisloPresnosti.toFixed(1).replace(".", ",") + " %";
+}
+
+function zobrazitVysledek() {
+  const jmeno = document.getElementById("firstName").value.trim();
+  const mesto = document.getElementById("city").value.trim();
+
+  const nahodneCislo = Math.floor(Math.random() * vysledky.length);
+  const vybranyVysledek = vysledky[nahodneCislo];
+
+  obrazekVysledku.src = vybranyVysledek.image;
+  nadpisVysledku.textContent = vybranyVysledek.title;
+
+  textVysledku.textContent =
+    (jmeno || "Profil") +
+    " má nejbližší nalezenou shodu v oblasti " +
+    (mesto || "nezadaného města") +
+    ". " +
+    vybranyVysledek.text;
+
+  skoreVysledku.textContent = vybranyVysledek.score;
+  boxVysledek.style.display = "block";
+
+  tlacitko.disabled = false;
+  tlacitko.textContent = "Hledat znovu";
+}
+
+  </script>
+</body>
+</html>
