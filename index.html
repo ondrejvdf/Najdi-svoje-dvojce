@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Najdi svoje dvojce</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f2f2f2;
+      --panel: #f7f7f7;
+      --ink: #171717;
+      --muted: #555;
+      --line: #d0d0d0;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 13px;
+    }
+
+    main {
+      width: calc(100% - 20px);
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 22px 0 16px;
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: 44% 56%;
+      column-gap: 24px;
+      align-items: end;
+    }
+
+    .intro h1 {
+      grid-column: 1 / -1;
+      margin: 0 0 28px;
+      font-size: 25px;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .intro p {
+      grid-column: 2;
+      max-width: 470px;
+      margin: 0 0 -58px 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      position: relative;
+      z-index: 3;
+    }
+
+    .app {
+      position: relative;
+      display: grid;
+      grid-template-columns: 44% 56%;
+      grid-auto-flow: row;
+      gap: 16px 24px;
+      min-height: 680px;
+      margin-top: 0;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 0;
+    }
+
+    .app::after {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: calc(56% - 11px);
+      border: 1px solid var(--line);
+      background: var(--panel);
+      pointer-events: none;
+    }
+
+    #twinForm {
+      display: contents;
+    }
+
+    .form-grid {
+      position: relative;
+      z-index: 1;
+      grid-column: 1;
+      grid-row: 1 / span 4;
+      align-content: start;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      min-height: 680px;
+      padding: 34px 18px 18px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .form-grid::before {
+      content: "Údaje uživatele";
+      position: absolute;
+      top: -8px;
+      left: 10px;
+      padding: 0 5px;
+      color: #444;
+      background: var(--bg);
+      font-size: 12px;
+    }
+
+    label {
+      display: grid;
+      grid-template-columns: 78px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      color: #333;
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    input {
+      width: 100%;
+      height: 25px;
+      border: 1px solid #c9c9c9;
+      border-radius: 0;
+      padding: 3px 7px;
+      color: var(--ink);
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      font: inherit;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #8d8d8d;
+      box-shadow: 0 0 0 1px #aaa;
+    }
+
+    .wide {
+      grid-column: auto;
+      display: block;
+      margin-top: 10px;
+      font-size: 0;
+    }
+
+    .upload {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      min-height: 410px;
+      padding-top: 34px;
+      overflow: hidden;
+      border: 1px solid #bcbcbc;
+      border-radius: 0;
+      background: #f4f4f4;
+      cursor: pointer;
+    }
+
+    .upload::before {
+      content: "Nahrát fotku obličeje";
+      position: absolute;
+      z-index: 2;
+      top: 0;
+      left: 0;
+      width: 100%;
+      min-height: 25px;
+      padding: 5px 8px;
+      border: 0;
+      border-bottom: 1px solid #c9c9c9;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      color: #222;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .upload input {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload span {
+      color: #555;
+      padding: 18px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .preview {
+      width: 100%;
+      height: 100%;
+      min-height: 410px;
+      object-fit: contain;
+      display: none;
+    }
+
+    .actions {
+      position: relative;
+      z-index: 1;
+      grid-column: 2;
+      grid-row: 1;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: stretch;
+      gap: 22px;
+      margin: 0;
+      padding: 92px 18px 0;
+    }
+
+    .actions::before {
+      content: "AI analýza";
+      position: absolute;
+      top: -8px;
+      left: 10px;
+      padding: 0 5px;
+      background: var(--bg);
+      color: #444;
+      font-size: 12px;
+    }
+
+    button {
+      width: 100%;
+      min-height: 27px;
+      border: 1px solid #c9c9c9;
+      border-radius: 2px;
+      padding: 4px 10px;
+      color: #222;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    button:hover {
+      background: #f5f5f5;
+    }
+
+    button:disabled {
+      cursor: wait;
+      color: #777;
+      background: #ededed;
+    }
+
+    .hint {
+      max-width: 470px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .progress-wrap {
+      position: relative;
+      z-index: 1;
+      grid-column: 2;
+      grid-row: 2;
+      display: none;
+      margin: 0;
+      padding: 0 18px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 10px;
+      color: #222;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .progress {
+      position: relative;
+      height: 25px;
+      overflow: hidden;
+      border: 1px solid #c8c8c8;
+      border-radius: 0;
+      background: #e5e5e5;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    .bar {
+      width: 0%;
+      height: 100%;
+      border-radius: 0;
+      background: #a9a9a9;
+      transition: width 0.34s ease;
+    }
+
+    .progress-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .metric {
+      min-height: 48px;
+      padding: 8px;
+      border: 1px solid #cfcfcf;
+      border-radius: 0;
+      background: #f9f9f9;
+    }
+
+    .metric span {
+      display: block;
+      color: #666;
+      font-size: 10px;
+      font-weight: 400;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 5px;
+      color: #222;
+      font-size: 12px;
+    }
+
+    .result {
+      position: relative;
+      z-index: 1;
+      grid-column: 2;
+      grid-row: 3;
+      display: none;
+      margin: 0 18px 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .result-card {
+      display: block;
+    }
+
+    .match-img {
+      width: 100%;
+      max-height: 315px;
+      border: 1px solid #bcbcbc;
+      border-radius: 0;
+      background: #fff;
+      box-shadow: none;
+      object-fit: contain;
+    }
+
+    .result-copy {
+      margin-top: 12px;
+    }
+
+    .result h2 {
+      margin: 0 0 8px;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    .result p {
+      margin: 0 0 10px;
+      color: #555;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .score {
+      display: inline-block;
+      min-height: 0;
+      padding: 5px 8px;
+      border: 1px solid #c6c6c6;
+      border-radius: 0;
+      background: #eee;
+      color: #222;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .error {
+      position: relative;
+      z-index: 2;
+      grid-column: 1;
+      display: none;
+      margin: -42px 18px 0;
+      color: #9d2222;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 800px) {
+      main {
+        width: calc(100% - 16px);
+        padding-top: 14px;
+      }
+
+      .intro {
+        display: block;
+      }
+
+      .intro h1 {
+        margin-bottom: 8px;
+        font-size: 22px;
+      }
+
+      .intro p {
+        margin: 0 0 18px;
+        font-size: 12px;
+      }
+
+      .app {
+        display: block;
+        min-height: 0;
+      }
+
+      .app::after {
+        display: none;
+      }
+
+      #twinForm {
+        display: block;
+      }
+
+      .form-grid {
+        min-height: 0;
+        margin-bottom: 18px;
+      }
+
+      .upload,
+      .preview {
+        min-height: 300px;
+      }
+
+      .actions,
+      .progress-wrap,
+      .result {
+        margin: 0 0 18px;
+        padding-left: 18px;
+        padding-right: 18px;
+        border: 1px solid var(--line);
+        background: var(--panel);
+      }
+
+      .actions {
+        padding-top: 55px;
+        padding-bottom: 18px;
+      }
+
+      .progress-wrap {
+        padding-top: 18px;
+        padding-bottom: 18px;
+      }
+
+      .result {
+        padding-top: 18px;
+        padding-bottom: 18px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      label {
+        grid-template-columns: 1fr;
+        gap: 5px;
+      }
+
+      .progress-metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="intro" aria-label="Úvod">
+      <h1>Najdi svoje dvojce</h1>
+      <p>Zadej základní údaje, nahraj aktuální fotografii a spusť porovnání podobnosti v databázi profilů.</p>
+    </section>
+
+    <section class="app" aria-label="Vyhledávač dvojčete">
+      <form id="twinForm">
+        <div class="form-grid">
+          <label>
+            Jméno
+            <input id="firstName" name="firstName" autocomplete="given-name" required>
+          </label>
+          <label>
+            Příjmení
+            <input id="lastName" name="lastName" autocomplete="family-name" required>
+          </label>
+          <label>
+            Věk
+            <input id="age" name="age" type="number" min="1" max="120" required>
+          </label>
+          <label>
+            Město
+            <input id="city" name="city" autocomplete="address-level2" required>
+          </label>
+          <label class="wide">
+            Fotka
+            <span class="upload">
+              <img id="preview" class="preview" alt="Nahraná fotka">
+              <span id="uploadText">Klikni a nahraj svoji fotku</span>
+              <input id="photo" name="photo" type="file" accept="image/*" required>
+            </span>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="searchBtn" type="submit">Hledat dvojce</button>
+          <span class="hint">Analýza vyhodnotí obličejové body, výraz a celkovou podobnost profilu.</span>
+        </div>
+
+        <p id="error" class="error">Vyplň všechna pole a nahraj fotografii pro spuštění analýzy.</p>
+      </form>
+
+      <div id="progressWrap" class="progress-wrap" aria-live="polite">
+        <div class="progress-top">
+          <span id="statusText">Startuju sken podobnosti...</span>
+          <span id="percent">0%</span>
+        </div>
+        <div class="progress" aria-label="Průběh hledání">
+          <div id="bar" class="bar"></div>
+        </div>
+        <div class="progress-metrics" aria-label="Detaily skenu">
+          <div class="metric">
+            <span>Tvářový otisk</span>
+            <strong id="faceMetric">čeká se</strong>
+          </div>
+          <div class="metric">
+            <span>Databáze shod</span>
+            <strong id="databaseMetric">0 záznamů</strong>
+          </div>
+          <div class="metric">
+            <span>Jistota systému</span>
+            <strong id="confidenceMetric">0,0 %</strong>
+          </div>
+        </div>
+      </div>
+
+      <section id="result" class="result" aria-live="polite">
+        <div class="result-card">
+          <img id="matchImg" class="match-img" alt="Nalezené dvojce">
+          <div class="result-copy">
+            <h2 id="resultTitle">Nalezena shoda</h2>
+            <p id="resultText"></p>
+            <span id="score" class="score"></span>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const form = document.querySelector("#twinForm");
+    const photo = document.querySelector("#photo");
+    const preview = document.querySelector("#preview");
+    const uploadText = document.querySelector("#uploadText");
+    const error = document.querySelector("#error");
+    const progressWrap = document.querySelector("#progressWrap");
+    const bar = document.querySelector("#bar");
+    const percent = document.querySelector("#percent");
+    const statusText = document.querySelector("#statusText");
+    const result = document.querySelector("#result");
+    const matchImg = document.querySelector("#matchImg");
+    const resultTitle = document.querySelector("#resultTitle");
+    const resultText = document.querySelector("#resultText");
+    const score = document.querySelector("#score");
+    const searchBtn = document.querySelector("#searchBtn");
+    const faceMetric = document.querySelector("#faceMetric");
+    const databaseMetric = document.querySelector("#databaseMetric");
+    const confidenceMetric = document.querySelector("#confidenceMetric");
+
+    function svgData(label, color, shape) {
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 700">
+          <rect width="700" height="700" fill="#f8fbff"/>
+          <circle cx="560" cy="130" r="96" fill="${color}" opacity=".18"/>
+          <circle cx="126" cy="580" r="126" fill="#118ab2" opacity=".14"/>
+          ${shape}
+          <text x="350" y="625" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="800" fill="#17202a">${label}</text>
+        </svg>
+      `;
+      return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+
+    const funnyMatches = [
+      {
+        image: "match-1.png",
+        title: "Nalezena velmi vysoká podobnost.",
+        text: "Systém vyhodnotil výrazné shody v oblasti očí, nosu, tvaru obličeje a mimiky.",
+        score: "Shoda 99,8 %"
+      },
+      {
+        image: "match-2.png",
+        title: "Nalezena shoda profilu.",
+        text: "Porovnání potvrdilo podobné proporce obličeje, úsměv a strukturu výrazových bodů.",
+        score: "Shoda 97,4 %"
+      },
+      {
+        image: "match-3.png",
+        title: "Nalezena pravděpodobná shoda.",
+        text: "Analýza našla výraznou podobnost v symetrii obličeje, očích a celkovém výrazu.",
+        score: "Shoda 96,6 %"
+      }
+    ];
+
+    const scanSteps = [
+      { limit: 8, text: "Inicializuju kamerový model..." },
+      { limit: 19, text: "Načítám fotku a hledám obličejové body..." },
+      { limit: 34, text: "Měřím vzdálenost očí, nosu a kontury obličeje..." },
+      { limit: 52, text: "Porovnávám data s databází podobnostních profilů..." },
+      { limit: 67, text: "Počítám podobnost výrazu, vlasů a tvaru hlavy..." },
+      { limit: 83, text: "Odstraňuju nízké a duplicitní shody..." },
+      { limit: 94, text: "Ověřuju nejlepší nalezenou shodu..." },
+      { limit: 99, text: "Kontroluju přesnost výsledku..." },
+      { limit: 100, text: "Analýza dokončena, připravuju výsledek..." }
+    ];
+
+    photo.addEventListener("change", () => {
+      const file = photo.files && photo.files[0];
+      if (!file) return;
+
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = "block";
+      uploadText.style.display = "none";
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      if (!form.checkValidity()) {
+        error.style.display = "block";
+        form.reportValidity();
+        return;
+      }
+
+      error.style.display = "none";
+      result.style.display = "none";
+      progressWrap.style.display = "block";
+      searchBtn.disabled = true;
+      searchBtn.textContent = "Hledám...";
+      bar.style.width = "0%";
+      percent.textContent = "0%";
+      statusText.textContent = "Startuju sken podobnosti...";
+      faceMetric.textContent = "čeká se";
+      databaseMetric.textContent = "0 záznamů";
+      confidenceMetric.textContent = "0,0 %";
+      runScan();
+    });
+
+    function runScan() {
+      const startedAt = performance.now();
+      const duration = 12500 + Math.random() * 1800;
+      let lastProgress = 0;
+
+      function frame(now) {
+        const elapsed = now - startedAt;
+        const raw = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - raw, 2.8);
+        let progress = Math.floor(eased * 100);
+
+        if (progress > 82 && raw < 0.78) {
+          progress = 82 + Math.floor(Math.sin(elapsed / 220) * 2);
+        }
+
+        if (progress > 94 && raw < 0.94) {
+          progress = 94 + Math.floor(Math.sin(elapsed / 260) * 2);
+        }
+
+        progress = Math.max(lastProgress, Math.min(progress, 100));
+        lastProgress = progress;
+        updateScan(progress);
+
+        if (progress < 100) {
+          requestAnimationFrame(frame);
+        } else {
+          setTimeout(showResult, 650);
+        }
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    function updateScan(progress) {
+      const step = scanSteps.find(item => progress <= item.limit) || scanSteps[scanSteps.length - 1];
+      const records = Math.min(18420, Math.floor(progress * 184.2));
+      const confidence = Math.min(99.8, progress * 0.998);
+
+      bar.style.width = `${progress}%`;
+      percent.textContent = `${progress}%`;
+      statusText.textContent = step.text;
+      faceMetric.textContent = progress < 18 ? "mapování" : progress < 92 ? "37 bodů aktivních" : progress < 100 ? "ověřování" : "dokončeno";
+      databaseMetric.textContent = `${records.toLocaleString("cs-CZ")} záznamů`;
+      confidenceMetric.textContent = `${confidence.toLocaleString("cs-CZ", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+    }
+
+    function showResult() {
+      const firstName = document.querySelector("#firstName").value.trim();
+      const city = document.querySelector("#city").value.trim();
+      const picked = funnyMatches[Math.floor(Math.random() * funnyMatches.length)];
+
+      matchImg.src = picked.image;
+      resultTitle.textContent = picked.title;
+      resultText.textContent = `${firstName || "Profil"} má nejbližší nalezenou shodu v oblasti ${city || "nezadaného města"}. ${picked.text}`;
+      score.textContent = picked.score;
+      result.style.display = "block";
+      searchBtn.disabled = false;
+      searchBtn.textContent = "Hledat znovu";
+      result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+  </script>
+</body>
+</html>
